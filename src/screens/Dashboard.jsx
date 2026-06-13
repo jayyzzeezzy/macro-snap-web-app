@@ -50,6 +50,15 @@ export default function Dashboard() {
   const totals = data?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 }
   const meals = data?.meals ?? []
 
+  const isToday = date === todayISO()
+  const heading = isToday
+    ? 'Today'
+    : new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      })
+
   function commitGoals(next) {
     setGoals(next)
     saveGoals(next)
@@ -58,7 +67,7 @@ export default function Dashboard() {
   return (
     <div className="screen dashboard">
       <header className="screen__header">
-        <h1>Today</h1>
+        <h1>{heading}</h1>
         <input
           className="dashboard__date"
           type="date"
