@@ -1,25 +1,41 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { signin } from '../lib/api'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from '../state/AuthContext'
 
-// Sign-in screen: email + password. No session/persistence yet — this just
-// posts the credentials and surfaces any error from the backend.
+// Sign-in screen: email + password, plus a one-tap demo. On success the auth
+// context stores the JWT and we head into the app.
 export default function SignIn() {
   const navigate = useNavigate()
+  const { user, signIn, startDemo } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  // Already authenticated (e.g. navigated here manually) — go to the app.
+  if (user) return <Navigate to="/" replace />
 
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setError('')
     try {
-      await signin({ email, password })
+      await signIn(email, password)
+      navigate('/')
     } catch (err) {
       setError(err.message)
-    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleDemo() {
+    setSubmitting(true)
+    setError('')
+    try {
+      await startDemo()
+      navigate('/')
+    } catch (err) {
+      setError(err.message)
       setSubmitting(false)
     }
   }
@@ -28,7 +44,6 @@ export default function SignIn() {
     <div className="screen auth">
       <header className="screen__header">
         <h1>Sign in</h1>
-        <Link to="/" className="link">← Back</Link>
       </header>
 
       {error && <p className="error">{error}</p>}
@@ -73,7 +88,7 @@ export default function SignIn() {
       <button
         className="btn btn--ghost btn--block"
         type="button"
-        onClick={() => navigate('/')}
+        onClick={handleDemo}
         disabled={submitting}
       >
         Try the demo

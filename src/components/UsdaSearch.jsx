@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { searchUsda } from '../lib/api'
+import { food } from '../lib/api'
 import { round } from '../lib/macros'
 
 // Inline panel for renaming a food: search USDA and pick the correct match.
@@ -17,7 +17,7 @@ export default function UsdaSearch({ initialQuery = '', onPick, onCancel }) {
     setLoading(true)
     setError('')
     try {
-      const data = await searchUsda(q)
+      const data = await food.usdaSearch(q)
       setFoods(data.foods || [])
     } catch (err) {
       setError(err.message)

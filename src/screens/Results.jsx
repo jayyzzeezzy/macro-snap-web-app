@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useMealDraft } from '../state/MealDraftContext'
-import { saveMeal } from '../lib/api'
+import { useMeals } from '../state/useMeals'
 import { recalcMacros, sumMacros, round } from '../lib/macros'
 import MacroTotals from '../components/MacroTotals'
 import UsdaSearch from '../components/UsdaSearch'
@@ -11,6 +11,7 @@ import UsdaSearch from '../components/UsdaSearch'
 export default function Results() {
   const navigate = useNavigate()
   const { draft, clearDraft } = useMealDraft()
+  const meals = useMeals()
 
   // Local, editable copy of the analyzed items. Hook order must stay stable,
   // so initialise before the early return below.
@@ -66,7 +67,7 @@ export default function Results() {
     setSaving(true)
     setError('')
     try {
-      await saveMeal(
+      await meals.create(
         items.map((it) => ({
           name: it.name,
           fdcId: it.fdcId,

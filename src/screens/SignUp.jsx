@@ -1,26 +1,30 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { signup } from '../lib/api'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from '../state/AuthContext'
 
-// Sign-up screen for new users: email + password. No session/persistence yet —
-// on success we send the user to the sign-in page to log in.
+// Sign-up screen for new users: email + password. Signup logs the user in
+// (returns a token), so on success we drop them straight into the app.
 export default function SignUp() {
   const navigate = useNavigate()
+  const { user, signUp } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  // Already authenticated — no need to register.
+  if (user) return <Navigate to="/" replace />
 
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setError('')
     try {
-      await signup({ email, password })
-      navigate('/signin')
+      // Signup issues a token and logs the user in, so go straight to the app.
+      await signUp(email, password)
+      navigate('/')
     } catch (err) {
       setError(err.message)
-    } finally {
       setSubmitting(false)
     }
   }

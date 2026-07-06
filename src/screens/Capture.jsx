@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { analyzeImage } from '../lib/api'
+import { food } from '../lib/api'
 import { fileToBase64 } from '../lib/image'
 import { useMealDraft } from '../state/MealDraftContext'
 
@@ -33,7 +33,7 @@ export default function Capture() {
     setAnalyzing(true)
     setError('')
     try {
-      const data = await analyzeImage({ image: preview.base64, mimeType: preview.mimeType })
+      const data = await food.analyzeBase64(preview.base64, preview.mimeType)
       setDraft({ items: data.items || [], totals: data.totals, preview: preview.dataUrl })
       navigate('/results')
     } catch (err) {

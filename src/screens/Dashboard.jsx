@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getDaily } from '../lib/api'
+import { useMeals } from '../state/useMeals'
 import { loadGoals, saveGoals, DEFAULT_GOALS } from '../lib/goals'
 import { round, sumMacros } from '../lib/macros'
 import MacroBar from '../components/MacroBar'
@@ -25,12 +25,14 @@ export default function Dashboard() {
   const [goals, setGoals] = useState(loadGoals)
   const [editingGoals, setEditingGoals] = useState(false)
 
+  const mealsApi = useMeals()
+
   const load = useCallback(async (forDate) => {
     setLoading(true)
     setError('')
     try {
       const isToday = forDate === todayISO()
-      const result = await getDaily(isToday ? undefined : forDate)
+      const result = await mealsApi.daily(isToday ? undefined : forDate)
       setData(result)
     } catch (err) {
       setError(err.message)
@@ -38,7 +40,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [mealsApi])
 
   useEffect(() => {
     // Fetch the day's meals when the date changes; loading state is set inside

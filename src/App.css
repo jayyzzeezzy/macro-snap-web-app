@@ -96,6 +96,8 @@
   padding: 0.6rem 0.75rem;
   margin: 0;
   font-size: 0.9rem;
+  /* Render newline-joined validation messages (api.js) as separate lines. */
+  white-space: pre-line;
 }
 
 .badge {
@@ -487,4 +489,29 @@
 .auth__alt {
   text-align: center;
   font-size: 0.9rem;
+}
+
+/* ---------- Account bar & demo banner ---------- */
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.account-bar__user {
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.demo-banner {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
