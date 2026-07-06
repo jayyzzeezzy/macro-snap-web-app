@@ -461,3 +461,30 @@
   text-decoration: none;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
+
+/* ---------- Auth (sign in) ---------- */
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.auth__field span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.auth__field input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 0.55rem 0.6rem;
+}
+.auth__alt {
+  text-align: center;
+  font-size: 0.9rem;
+}

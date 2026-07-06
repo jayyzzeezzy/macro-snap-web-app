@@ -17,7 +17,12 @@ async function request(path, options = {}) {
     let message = `Request failed (${res.status})`
     try {
       const body = await res.json()
-      if (body?.error) message = body.error
+      if (body?.error) {
+        message = body.error
+      } else if (Array.isArray(body?.errors) && body.errors.length) {
+        // express-validator 400s: { errors: [{ field, message }] }
+        message = body.errors.map((e) => e.message).join('\n')
+      }
     } catch {
       // non-JSON error body; keep the generic message
     }
@@ -44,6 +49,22 @@ export function saveMeal(items) {
   return request('/api/meals', {
     method: 'POST',
     body: JSON.stringify({ items }),
+  })
+}
+
+// POST /api/auth/signup — create an account. Returns { id, email, createdAt }.
+export function signup({ email, password }) {
+  return request('/api/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+// POST /api/auth/signin — email/password sign in. Returns { id, email }.
+export function signin({ email, password }) {
+  return request('/api/auth/signin', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
   })
 }
 
