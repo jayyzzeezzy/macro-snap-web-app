@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMeals } from '../state/useMeals'
-import { loadGoals, saveGoals, DEFAULT_GOALS } from '../lib/goals'
+import { goals as goalsApi } from '../lib/api'
 import { round, sumMacros } from '../lib/macros'
 import MacroBar from '../components/MacroBar'
 import MacroTotals from '../components/MacroTotals'
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
+
+// Shown before GET /api/goals resolves, and by "Reset to defaults". The backend
+// is the source of truth for a user's actual goals.
+const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 200, fat: 65 }
 
 const MACROS = [
   { kind: 'calories', label: 'Calories' },
@@ -22,7 +26,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const [goals, setGoals] = useState(loadGoals)
+  const [goals, setGoals] = useState(DEFAULT_GOALS)
   const [editingGoals, setEditingGoals] = useState(false)
 
   const mealsApi = useMeals()
@@ -49,6 +53,23 @@ export default function Dashboard() {
     load(date)
   }, [date, load])
 
+  useEffect(() => {
+    // Load the user's goals from the backend once on mount. Demo users get the
+    // defaults from the API (PUTs echo without persisting).
+    let active = true
+    goalsApi
+      .get()
+      .then((g) => {
+        if (active) setGoals(g)
+      })
+      .catch(() => {
+        // keep DEFAULT_GOALS on failure
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   const totals = data?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 }
   const meals = data?.meals ?? []
 
@@ -63,7 +84,10 @@ export default function Dashboard() {
 
   function commitGoals(next) {
     setGoals(next)
-    saveGoals(next)
+    // Persist to the backend (demo users echo back without persisting).
+    goalsApi.update(next).catch(() => {
+      // leave the optimistic value in place; next load will reconcile
+    })
   }
 
   return (

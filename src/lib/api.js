@@ -70,9 +70,9 @@ async function request(path, { method = 'GET', body, auth = false, isForm = fals
 // --- auth ------------------------------------------------------------------
 export const auth = {
   // Creates the account AND logs the user in — stores the token, returns the
-  // user (same shape as signin).
-  async signup(email, password) {
-    const data = await request('/api/auth/signup', { method: 'POST', body: { email, password } })
+  // user (same shape as signin: { id, email, name }).
+  async signup(email, name, password) {
+    const data = await request('/api/auth/signup', { method: 'POST', body: { email, name, password } })
     setToken(data.token)
     return data.user
   },
@@ -113,6 +113,15 @@ export const meals = {
   create: (items) => request('/api/meals', { method: 'POST', auth: true, body: { items } }),
   list: () => request('/api/meals', { auth: true }),
   daily: (date) => request(`/api/meals/daily${date ? `?date=${encodeURIComponent(date)}` : ''}`, { auth: true }),
+}
+
+// --- goals -----------------------------------------------------------------
+// Per-user daily macro goals { calories, protein, carbs, fat }. New users get
+// backend defaults; demo users get defaults and PUT echoes without persisting.
+export const goals = {
+  get: () => request('/api/goals', { auth: true }),
+  update: ({ calories, protein, carbs, fat }) =>
+    request('/api/goals', { method: 'PUT', auth: true, body: { calories, protein, carbs, fat } }),
 }
 
 // --- food / vision ---------------------------------------------------------

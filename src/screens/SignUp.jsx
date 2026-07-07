@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../state/AuthContext'
 
-// Sign-up screen for new users: email + password. Signup logs the user in
-// (returns a token), so on success we drop them straight into the app.
+// Sign-up screen for new users: name + email + password. Signup logs the user
+// in (returns a token), so on success we drop them straight into the app.
 export default function SignUp() {
   const navigate = useNavigate()
   const { user, signUp } = useAuth()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -21,7 +22,7 @@ export default function SignUp() {
     setError('')
     try {
       // Signup issues a token and logs the user in, so go straight to the app.
-      await signUp(email, password)
+      await signUp(email, name, password)
       navigate('/')
     } catch (err) {
       setError(err.message)
@@ -39,6 +40,18 @@ export default function SignUp() {
       {error && <p className="error">{error}</p>}
 
       <form className="auth__form" onSubmit={handleSubmit}>
+        <label className="auth__field">
+          <span>What should we call you?</span>
+          <input
+            type="text"
+            autoComplete="name"
+            maxLength={50}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </label>
+
         <label className="auth__field">
           <span>Email</span>
           <input

@@ -26,9 +26,8 @@ export default function RequireAuth() {
   return (
     <>
       <div className="account-bar">
-        <span className="account-bar__user">
-          {isDemo ? 'Demo mode' : user.email}
-        </span>
+        {/* user.name is user-controlled — render as text only (never innerHTML). */}
+        <span className="account-bar__user">Hi, {user.name}</span>
         <button className="link link--small" onClick={handleSignOut}>
           {isDemo ? 'Exit demo' : 'Sign out'}
         </button>
