@@ -4,6 +4,10 @@
 const BASE = import.meta.env?.VITE_API_URL ?? ''
 const TOKEN_KEY = 'macrosnap_token'
 
+// "Continue with Google" is a full-page redirect to the backend (not a fetch),
+// so it points at the backend origin, not the frontend.
+export const googleAuthUrl = `${BASE}/api/auth/google`
+
 // --- token storage ---------------------------------------------------------
 export const getToken = () => localStorage.getItem(TOKEN_KEY)
 export const setToken = (t) => localStorage.setItem(TOKEN_KEY, t)
@@ -101,6 +105,11 @@ export const auth = {
       throw e
     }
   },
+
+  // Add a password to a passwordless (Google) account. 200 { success }, or
+  // 409 (already set) / 403 (demo) / 400 (weak) surfaced as ApiError.
+  setPassword: (password) =>
+    request('/api/auth/set-password', { method: 'POST', auth: true, body: { password } }),
 
   signout() {
     clearToken()

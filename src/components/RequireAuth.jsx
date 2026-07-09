@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../state/AuthContext'
 
 // Gate for the authenticated app: waits for the on-load session check, then
@@ -28,9 +28,14 @@ export default function RequireAuth() {
       <div className="account-bar">
         {/* user.name is user-controlled — render as text only (never innerHTML). */}
         <span className="account-bar__user">Hi, {user.name}</span>
-        <button className="link link--small" onClick={handleSignOut}>
-          {isDemo ? 'Exit demo' : 'Sign out'}
-        </button>
+        <div className="account-bar__actions">
+          {!isDemo && (
+            <Link to="/settings" className="link link--small">Settings</Link>
+          )}
+          <button className="link link--small" onClick={handleSignOut}>
+            {isDemo ? 'Exit demo' : 'Sign out'}
+          </button>
+        </div>
       </div>
       {isDemo && (
         <p className="demo-banner">

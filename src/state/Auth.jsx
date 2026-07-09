@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { auth, setOnUnauthorized } from '../lib/api'
+import { auth, setOnUnauthorized, setToken } from '../lib/api'
 import { clearDemoMeals } from '../lib/demoMeals'
 import { useMealDraft } from './MealDraftContext'
 import { AuthContext } from './AuthContext'
@@ -56,6 +56,22 @@ export function AuthProvider({ children }) {
     return u
   }, [])
 
+  // Finish a "Continue with Google" redirect: store the token from the callback
+  // URL, then load the user — same session as an email login from here on.
+  const completeOAuthLogin = useCallback(async (token) => {
+    setToken(token)
+    const u = await auth.me()
+    setUser(u)
+    return u
+  }, [])
+
+  // Add a password to a passwordless (Google) account; reflect it in the user.
+  const setPassword = useCallback(async (password) => {
+    const res = await auth.setPassword(password)
+    setUser((u) => (u ? { ...u, hasPassword: true } : u))
+    return res
+  }, [])
+
   const signOut = useCallback(() => {
     auth.signout()
     clearDemoMeals() // demo data only ever lived on this device
@@ -70,6 +86,8 @@ export function AuthProvider({ children }) {
     signIn,
     signUp,
     startDemo,
+    completeOAuthLogin,
+    setPassword,
     signOut,
   }
 

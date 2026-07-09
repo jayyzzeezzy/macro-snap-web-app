@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../state/AuthContext'
+import { googleAuthUrl } from '../lib/api'
 
 // Sign-up screen for new users: name + email + password. Signup logs the user
 // in (returns a token), so on success we drop them straight into the app.
@@ -38,6 +39,17 @@ export default function SignUp() {
       </header>
 
       {error && <p className="error">{error}</p>}
+
+      <button
+        className="btn btn--block auth__google"
+        type="button"
+        onClick={() => { window.location.href = googleAuthUrl }}
+        disabled={submitting}
+      >
+        Continue with Google
+      </button>
+
+      <div className="auth__divider"><span>or</span></div>
 
       <form className="auth__form" onSubmit={handleSubmit}>
         <label className="auth__field">

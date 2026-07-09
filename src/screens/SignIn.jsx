@@ -1,16 +1,24 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../state/AuthContext'
+import { googleAuthUrl } from '../lib/api'
 
-// Sign-in screen: email + password, plus a one-tap demo. On success the auth
-// context stores the JWT and we head into the app.
+// Sign-in screen: email + password, Google, plus a one-tap demo. On success the
+// auth context stores the JWT and we head into the app.
 export default function SignIn() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user, signIn, startDemo } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  // Seed with the OAuth failure message if the backend redirected here after a
+  // cancelled/denied Google sign-in (/login?error=google_auth_failed).
+  const [error, setError] = useState(
+    searchParams.get('error') === 'google_auth_failed'
+      ? 'Google sign-in was cancelled or failed. Please try again.'
+      : ''
+  )
 
   // Already authenticated (e.g. navigated here manually) — go to the app.
   if (user) return <Navigate to="/" replace />
@@ -47,6 +55,17 @@ export default function SignIn() {
       </header>
 
       {error && <p className="error">{error}</p>}
+
+      <button
+        className="btn btn--block auth__google"
+        type="button"
+        onClick={() => { window.location.href = googleAuthUrl }}
+        disabled={submitting}
+      >
+        Continue with Google
+      </button>
+
+      <div className="auth__divider"><span>or</span></div>
 
       <form className="auth__form" onSubmit={handleSubmit}>
         <label className="auth__field">
