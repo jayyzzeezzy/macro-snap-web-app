@@ -6,8 +6,17 @@ import { recalcMacros, sumMacros, round } from '../lib/macros'
 import MacroTotals from '../components/MacroTotals'
 import UsdaSearch from '../components/UsdaSearch'
 
+// Quick Add presets: a single macro expressed as a per-100g basis, so the
+// existing portion input means "grams of this macro" and calories auto-compute
+// at the standard 4/4/9 kcal-per-gram (protein/carbs 4, fat 9).
+const QUICK_ADD = {
+  protein: { name: 'Protein (Quick Add)', per100g: { calories: 400, protein: 100, carbs: 0, fat: 0 } },
+  carbs: { name: 'Carbs (Quick Add)', per100g: { calories: 400, protein: 0, carbs: 100, fat: 0 } },
+  fat: { name: 'Fat (Quick Add)', per100g: { calories: 900, protein: 0, carbs: 0, fat: 100 } },
+}
+
 // Screen 3: editable list of identified items. Portions recalc client-side;
-// renaming a food searches USDA for the correct match.
+// editing a food searches USDA for a match or uses a Quick Add macro.
 export default function Results() {
   const navigate = useNavigate()
   const { draft, clearDraft } = useMealDraft()
@@ -57,6 +66,36 @@ export default function Results() {
     setRenaming(null)
   }
 
+  function quickAdd(index, kind) {
+    const preset = QUICK_ADD[kind]
+    setItems((prev) =>
+      prev.map((it, i) => {
+        if (i !== index) return it
+        const portion = Number(it.portion_grams) || 0
+        return {
+          ...it,
+          name: preset.name,
+          fdcId: null,
+          usdaDescription: null,
+          per100g: preset.per100g,
+          found: true,
+          ...recalcMacros(preset.per100g, portion),
+        }
+      })
+    )
+    setRenaming(null)
+  }
+
+  function addManualItem() {
+    // Append a blank (unmatched) item and open its panel so the user can pick a
+    // USDA match or a Quick Add macro. New index is the current length.
+    setRenaming(items.length)
+    setItems((prev) => [
+      ...prev,
+      { name: 'New item', fdcId: null, per100g: null, found: false, portion_grams: '', calories: 0, protein: 0, carbs: 0, fat: 0 },
+    ])
+  }
+
   function removeItem(index) {
     setItems((prev) => prev.filter((_, i) => i !== index))
     setRenaming(null)
@@ -98,9 +137,11 @@ export default function Results() {
         <img className="results__thumb" src={draft.preview} alt="Analyzed meal" />
       )}
 
-      {items.length === 0 ? (
-        <p className="muted">No items left. Go back and try another photo.</p>
-      ) : (
+      {items.length === 0 && (
+        <p className="muted">No items yet. Add a photo, or add a food manually below.</p>
+      )}
+
+      {items.length > 0 && (
         <ul className="item-list">
           {items.map((item, index) => {
             const unmatched = !item.found || !item.per100g
@@ -140,7 +181,7 @@ export default function Results() {
 
                 {unmatched ? (
                   <p className="item__hint">
-                    Pick a USDA match to get macros for this item.
+                    Find a USDA match or use Quick Add to set this item’s macros.
                   </p>
                 ) : (
                   <MacroTotals macros={item} />
@@ -148,8 +189,9 @@ export default function Results() {
 
                 {renaming === index && (
                   <UsdaSearch
-                    initialQuery={item.name}
+                    initialQuery={item.name === 'New item' ? '' : item.name}
                     onPick={(food) => pickMatch(index, food)}
+                    onQuickAdd={(kind) => quickAdd(index, kind)}
                     onCancel={() => setRenaming(null)}
                   />
                 )}
@@ -159,11 +201,15 @@ export default function Results() {
         </ul>
       )}
 
+      <button className="btn btn--ghost btn--block" onClick={addManualItem}>
+        ＋ Add food manually
+      </button>
+
       {error && <p className="error">{error}</p>}
 
       <div className="results__summary">
         <div className="results__summary-head">
-          <span>Meal total</span>
+          <strong>Total Macros</strong>
           <strong>{round(totals.calories)} kcal</strong>
         </div>
         <MacroTotals macros={totals} />

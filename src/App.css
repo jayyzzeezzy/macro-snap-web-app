@@ -515,3 +515,18 @@
   font-size: 0.85rem;
   text-align: center;
 }
+
+/* ---------- Quick Add (custom macros) ---------- */
+.usda-search__quick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.usda-search__quick .muted {
+  font-size: 0.85rem;
+}
+.usda-search__quick-btns {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}

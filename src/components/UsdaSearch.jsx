@@ -7,9 +7,16 @@ import { round } from '../lib/macros'
 const MIN_QUERY = 2
 const DEBOUNCE_MS = 300
 
-// Inline panel for renaming a food: search USDA and pick the correct match.
-// onPick receives the chosen USDA food { fdcId, description, per100g, ... }.
-export default function UsdaSearch({ initialQuery = '', onPick, onCancel }) {
+const QUICK_ADD_OPTIONS = [
+  { kind: 'protein', label: 'Protein' },
+  { kind: 'carbs', label: 'Carbs' },
+  { kind: 'fat', label: 'Fat' },
+]
+
+// Inline panel for editing a food item: search USDA and pick a match, or use a
+// Quick Add macro. onPick receives a USDA food { fdcId, description, per100g };
+// onQuickAdd (optional) receives a macro kind ('protein' | 'carbs' | 'fat').
+export default function UsdaSearch({ initialQuery = '', onPick, onQuickAdd, onCancel }) {
   const [query, setQuery] = useState(initialQuery)
   const [foods, setFoods] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -63,6 +70,24 @@ export default function UsdaSearch({ initialQuery = '', onPick, onCancel }) {
           Cancel
         </button>
       </form>
+
+      {onQuickAdd && (
+        <div className="usda-search__quick">
+          <span className="muted">Or Quick Add a macro:</span>
+          <div className="usda-search__quick-btns">
+            {QUICK_ADD_OPTIONS.map((opt) => (
+              <button
+                key={opt.kind}
+                type="button"
+                className="btn btn--small btn--ghost"
+                onClick={() => onQuickAdd(opt.kind)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && <p className="error">{error}</p>}
 
