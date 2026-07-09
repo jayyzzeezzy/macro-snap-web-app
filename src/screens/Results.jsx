@@ -115,7 +115,7 @@ export default function Results() {
                     className="link link--small"
                     onClick={() => setRenaming(renaming === index ? null : index)}
                   >
-                    {unmatched ? 'Find match' : 'Rename'}
+                    {unmatched ? 'Find match' : 'Edit'}
                   </button>
                 </div>
 
