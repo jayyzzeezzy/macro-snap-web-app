@@ -20,6 +20,22 @@ export const setOnUnauthorized = (fn) => {
   onUnauthorized = fn
 }
 
+// "Server is waking up" signal. A request that outlives SLOW_MS (e.g. the free
+// host cold-starting) flips this on so the UI can explain the wait; it flips
+// off once no slow request is in flight. Subscribe with onSlowRequest().
+const SLOW_MS = 3500
+const slowListeners = new Set()
+let slowCount = 0
+export function onSlowRequest(fn) {
+  slowListeners.add(fn)
+  fn(slowCount > 0) // sync current state to new subscribers
+  return () => slowListeners.delete(fn)
+}
+function emitSlow() {
+  const slow = slowCount > 0
+  slowListeners.forEach((fn) => fn(slow))
+}
+
 // Thrown for any non-2xx response so callers can try/catch on err.message.
 export class ApiError extends Error {
   constructor(message, status, body) {
@@ -44,31 +60,47 @@ async function request(path, { method = 'GET', body, auth = false, isForm = fals
     payload = JSON.stringify(body)
   }
 
-  let res
+  // Flag the request as "slow" if it outlives SLOW_MS; always undo in finally.
+  let markedSlow = false
+  const slowTimer = setTimeout(() => {
+    markedSlow = true
+    slowCount++
+    emitSlow()
+  }, SLOW_MS)
+
   try {
-    res = await fetch(`${BASE}${path}`, { method, headers, body: payload })
-  } catch {
-    throw new ApiError('Could not reach the server. Is the backend running?', 0, null)
-  }
+    let res
+    try {
+      res = await fetch(`${BASE}${path}`, { method, headers, body: payload })
+    } catch {
+      throw new ApiError('Could not reach the server. Is the backend running?', 0, null)
+    }
 
-  // Global session-expiry handling: a 401 on a protected call means the token
-  // is dead — clear it and notify the app once.
-  if (res.status === 401 && auth) {
-    clearToken()
-    onUnauthorized()
-  }
+    // Global session-expiry handling: a 401 on a protected call means the token
+    // is dead — clear it and notify the app once.
+    if (res.status === 401 && auth) {
+      clearToken()
+      onUnauthorized()
+    }
 
-  const data = await res.json().catch(() => null)
-  if (!res.ok) {
-    // Prefer a single { error }, else join express-validator { errors: [...] }.
-    const message =
-      data?.error ||
-      (Array.isArray(data?.errors) && data.errors.length
-        ? data.errors.map((e) => e.message).join('\n')
-        : `Request failed (${res.status})`)
-    throw new ApiError(message, res.status, data)
+    const data = await res.json().catch(() => null)
+    if (!res.ok) {
+      // Prefer a single { error }, else join express-validator { errors: [...] }.
+      const message =
+        data?.error ||
+        (Array.isArray(data?.errors) && data.errors.length
+          ? data.errors.map((e) => e.message).join('\n')
+          : `Request failed (${res.status})`)
+      throw new ApiError(message, res.status, data)
+    }
+    return data
+  } finally {
+    clearTimeout(slowTimer)
+    if (markedSlow) {
+      slowCount--
+      emitSlow()
+    }
   }
-  return data
 }
 
 // --- auth ------------------------------------------------------------------

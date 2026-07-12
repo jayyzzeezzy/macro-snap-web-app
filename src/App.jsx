@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './state/Auth'
 import { MealDraftProvider } from './state/MealDraft'
 import RequireAuth from './components/RequireAuth'
+import ColdStartOverlay from './components/ColdStartOverlay'
 import Capture from './screens/Capture'
 import Results from './screens/Results'
 import Dashboard from './screens/Dashboard'
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <MealDraftProvider>
       <AuthProvider>
+        <ColdStartOverlay />
         <div className="app">
           <Routes>
             {/* Public */}
