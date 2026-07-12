@@ -1,0 +1,18 @@
+# Netlify build + hosting config for the MacroSnap frontend (Vite + React SPA).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 needs Node 20.19+/22.12+; pin it so the build doesn't use an older default.
+  NODE_VERSION = "22"
+
+# SPA fallback: serve index.html for any path that isn't a real file, so
+# client-side routes (/dashboard, /settings, /auth/callback) work on direct
+# load and refresh. Real assets in dist/ are matched first, so this only
+# catches unknown paths.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
